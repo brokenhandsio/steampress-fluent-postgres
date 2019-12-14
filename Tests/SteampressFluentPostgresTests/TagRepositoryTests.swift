@@ -11,7 +11,12 @@ class TagRepositoryTests: XCTestCase {
         try services.register(FluentPostgreSQLProvider())
         
         var databases = DatabasesConfig()
-        let hostname = "localhost"
+        let hostname: String
+        if let envHostname = Environment.get("DB_HOSTNAME") {
+            hostname = envHostname
+        } else {
+            hostname = "localhost"
+        }
         let username = "steampress"
         let password = "password"
         let databaseName = "steampress-test"
