@@ -20,6 +20,7 @@ jobs:
     - run: swift test --enable-test-discovery --sanitize=thread
       env:
         DB_HOSTNAME: psql
+        DB_PORT: 5432
   bionic:
     container: 
       image: vapor/swift:5.1-bionic
@@ -38,3 +39,4 @@ jobs:
     - run: swift test --enable-test-discovery --sanitize=thread
       env:
         DB_HOSTNAME: psql
+        DB_PORT: 5432

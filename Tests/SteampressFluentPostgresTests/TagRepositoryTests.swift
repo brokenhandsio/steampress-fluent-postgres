@@ -20,7 +20,12 @@ class TagRepositoryTests: XCTestCase {
         let username = "steampress"
         let password = "password"
         let databaseName = "steampress-test"
-        let databasePort = 5432
+        let databasePort: Int
+        if let envPort = Environment.get("DB_PORT"), let envPortInt = Int(envPort) {
+            databasePort = envPortInt
+        } else {
+            databasePort = 5433
+        }
         let databaseConfig = PostgreSQLDatabaseConfig(hostname: hostname, port: databasePort, username: username, database: databaseName, password: password)
         let database = PostgreSQLDatabase(config: databaseConfig)
         databases.add(database: database, as: .psql)
