@@ -9,7 +9,7 @@ jobs:
       psql:
         image: postgres
         ports:
-          - 5433:5432
+          - 5432:5432
         env:
           POSTGRES_USER: steampress
           POSTGRES_DB: steampress-test
@@ -27,7 +27,7 @@ jobs:
       psql:
         image: postgres
         ports:
-          - 5433:5432
+          - 5432:5432
         env:
           POSTGRES_USER: steampress
           POSTGRES_DB: steampress-test
