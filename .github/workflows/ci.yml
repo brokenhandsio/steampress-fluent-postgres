@@ -1,0 +1,36 @@
+name: CI
+on:
+- push
+jobs:
+  xenial:
+    container: 
+      image: vapor/swift:5.1-xenial
+    services:
+      psql:
+        image: postgres
+        ports:
+          - 5433:5432
+        env:
+          POSTGRES_USER: steampress
+          POSTGRES_DB: steampress-test
+          POSTGRES_PASSWORD: password
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - run: swift test --enable-test-discovery --sanitize=thread
+  bionic:
+    container: 
+      image: vapor/swift:5.1-bionic
+    services:
+      psql:
+        image: postgres
+        ports:
+          - 5433:5432
+        env:
+          POSTGRES_USER: steampress
+          POSTGRES_DB: steampress-test
+          POSTGRES_PASSWORD: password
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - run: swift test --enable-test-discovery --sanitize=thread
