@@ -4,7 +4,9 @@ import SteamPress
 struct FluentPostgresTagRepository: BlogTagRepository {
     
     func getAllTags(on container: Container) -> EventLoopFuture<[BlogTag]> {
-        fatalError()
+        container.requestPooledConnection(to: .psql).flatMap { connection in
+            BlogTag.query(on: connection).all()
+        }
     }
     
     func getAllTagsWithPostCount(on container: Container) -> EventLoopFuture<[(BlogTag, Int)]> {

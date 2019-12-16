@@ -20,7 +20,7 @@ class TagRepositoryTests: XCTestCase {
     
     // MARK: - Tests
     
-    func testSavingTag() throws {        
+    func testSavingTag() throws {
         let newTag = try BlogTag(name: "SteamPress")
         let savedTag = try repository.save(newTag, on: app).wait()
         
@@ -39,5 +39,18 @@ class TagRepositoryTests: XCTestCase {
         
         XCTAssertEqual(retrievedTag?.name, tagName)
         XCTAssertEqual(retrievedTag?.tagID, tag.tagID)
+    }
+    
+    func testGettingAllTags() throws {
+        let tagName1 = "Engineering"
+        let tagName2 = "SteamPress"
+        _ = try BlogTag(name: tagName1).save(on: connection).wait()
+        _ = try BlogTag(name: tagName2).save(on: connection).wait()
+        
+        let tags = try repository.getAllTags(on: app).wait()
+        
+        XCTAssertEqual(tags.count, 2)
+        XCTAssertEqual(tags.first?.name, tagName1)
+        XCTAssertEqual(tags.last?.name, tagName2)
     }
 }
