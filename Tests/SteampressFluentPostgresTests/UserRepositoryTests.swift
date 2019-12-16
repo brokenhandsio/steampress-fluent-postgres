@@ -93,5 +93,8 @@ class UserRepositoryTests: XCTestCase {
         let countAfterDelete = try BlogUser.query(on: connection).count().wait()
         XCTAssertEqual(countAfterDelete, 0)
     }
+    
+    #warning("Test username must be unique")
+    #warning("Getting by name is od...")
 }
 

@@ -53,4 +53,6 @@ class TagRepositoryTests: XCTestCase {
         XCTAssertEqual(tags.first?.name, tagName1)
         XCTAssertEqual(tags.last?.name, tagName2)
     }
+    
+    #warning("Test tag name must be unique")
 }

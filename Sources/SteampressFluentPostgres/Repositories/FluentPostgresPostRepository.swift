@@ -4,35 +4,39 @@ import SteamPress
 struct FluentPostgresPostRepository: BlogPostRepository {
     
     func getAllPostsSortedByPublishDate(includeDrafts: Bool, on container: Container) -> EventLoopFuture<[BlogPost]> {
-        fatalError()
+        container.future([])
     }
     
     func getAllPostsSortedByPublishDate(includeDrafts: Bool, on container: Container, count: Int, offset: Int) -> EventLoopFuture<[BlogPost]> {
-        fatalError()
+        container.future([])
     }
     
     func getAllPostsSortedByPublishDate(for user: BlogUser, includeDrafts: Bool, on container: Container, count: Int, offset: Int) -> EventLoopFuture<[BlogPost]> {
-        fatalError()
+        container.future([])
     }
     
     func getPostCount(for user: BlogUser, on container: Container) -> EventLoopFuture<Int> {
-        fatalError()
+        container.future(-99)
     }
     
     func getPost(slug: String, on container: Container) -> EventLoopFuture<BlogPost?> {
-        fatalError()
+        container.requestPooledConnection(to: .psql).flatMap { connection in
+            BlogPost.query(on: connection).filter(\.slugUrl == slug).first()
+        }
     }
     
     func getPost(id: Int, on container: Container) -> EventLoopFuture<BlogPost?> {
-        fatalError()
+        container.requestPooledConnection(to: .psql).flatMap { connection in
+            BlogPost.query(on: connection).filter(\.blogID == id).first()
+        }
     }
     
     func getSortedPublishedPosts(for tag: BlogTag, on container: Container, count: Int, offset: Int) -> EventLoopFuture<[BlogPost]> {
-        fatalError()
+        container.future([])
     }
     
     func findPublishedPostsOrdered(for searchTerm: String, on container: Container) -> EventLoopFuture<[BlogPost]> {
-        fatalError()
+        container.future([])
     }
     
     func save(_ post: BlogPost, on container: Container) -> EventLoopFuture<BlogPost> {
@@ -42,7 +46,9 @@ struct FluentPostgresPostRepository: BlogPostRepository {
     }
     
     func delete(_ post: BlogPost, on container: Container) -> EventLoopFuture<Void> {
-        fatalError()
+        container.requestPooledConnection(to: .psql).flatMap { connection in
+            post.delete(on: connection)
+        }
     }
     
 }
