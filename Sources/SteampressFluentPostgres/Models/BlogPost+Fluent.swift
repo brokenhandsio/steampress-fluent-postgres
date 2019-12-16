@@ -9,7 +9,7 @@ extension BlogPost: Model {
 
 extension BlogPost: Migration {
     public static func prepare(on connection: PostgreSQLConnection) -> EventLoopFuture<Void> {
-        return Database.create(BlogPost.self, on: connection) { builder in
+        Database.create(BlogPost.self, on: connection) { builder in
             builder.field(for: \.blogID, isIdentifier: true)
             builder.field(for: \.title)
             builder.field(for: \.contents)

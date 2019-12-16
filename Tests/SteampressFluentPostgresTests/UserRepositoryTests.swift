@@ -94,7 +94,17 @@ class UserRepositoryTests: XCTestCase {
         XCTAssertEqual(countAfterDelete, 0)
     }
     
-    #warning("Test username must be unique")
-    #warning("Getting by name is od...")
+    func testCreatingUserWithExistingUsernameFails() throws {
+        let username = "alice"
+        var errorOccurred = false
+        _ = try BlogUser(name: "Alice", username: username, password: "password", profilePicture: nil, twitterHandle: nil, biography: nil, tagline: nil).save(on: connection).wait()
+        do {
+            _ = try BlogUser(name: "Bob", username: username, password: "password", profilePicture: nil, twitterHandle: nil, biography: nil, tagline: nil).save(on: connection).wait()
+        } catch {
+            errorOccurred = true
+        }
+        
+        XCTAssertTrue(errorOccurred)
+    }
 }
 
