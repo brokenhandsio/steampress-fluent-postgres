@@ -41,5 +41,4 @@ struct FluentPostgresTagRepository: BlogTagRepository {
         fatalError()
     }
     
-    
 }
