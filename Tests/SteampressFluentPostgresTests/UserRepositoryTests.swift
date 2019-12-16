@@ -72,5 +72,26 @@ class UserRepositoryTests: XCTestCase {
         XCTAssertEqual(users.first?.name, name1)
         XCTAssertEqual(users.last?.name, name2)
     }
+    
+    func testUsersCount() throws {
+        _ = try BlogUser(name: "Alice", username: "alice", password: "password", profilePicture: nil, twitterHandle: nil, biography: nil, tagline: nil).save(on: connection).wait()
+        _ = try BlogUser(name: "Bob", username: "bob", password: "password", profilePicture: nil, twitterHandle: nil, biography: nil, tagline: nil).save(on: connection).wait()
+        
+        let count = try repository.getUsersCount(on: app).wait()
+        
+        XCTAssertEqual(count, 2)
+    }
+    
+    func testDeletingAUser() throws {
+        let user = try BlogUser(name: "Alice", username: "alice", password: "password", profilePicture: nil, twitterHandle: nil, biography: nil, tagline: nil).save(on: connection).wait()
+        
+        let count = try BlogUser.query(on: connection).count().wait()
+        XCTAssertEqual(count, 1)
+        
+        try repository.delete(user, on: app).wait()
+        
+        let countAfterDelete = try BlogUser.query(on: connection).count().wait()
+        XCTAssertEqual(countAfterDelete, 0)
+    }
 }
 

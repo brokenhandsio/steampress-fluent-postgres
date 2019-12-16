@@ -37,11 +37,15 @@ struct FluentPostgresUserRepository: BlogUserRepository {
     }
     
     func delete(_ user: BlogUser, on container: Container) -> EventLoopFuture<Void> {
-        fatalError()
+        container.requestPooledConnection(to: .psql).flatMap { connection in
+            user.delete(on: connection)
+        }
     }
     
     func getUsersCount(on container: Container) -> EventLoopFuture<Int> {
-        fatalError()
+        container.requestPooledConnection(to: .psql).flatMap { connection in
+            BlogUser.query(on: connection).count()
+        }
     }
     
     
