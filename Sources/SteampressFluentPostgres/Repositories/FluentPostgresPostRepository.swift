@@ -4,7 +4,13 @@ import SteamPress
 struct FluentPostgresPostRepository: BlogPostRepository {
     
     func getAllPostsSortedByPublishDate(includeDrafts: Bool, on container: Container) -> EventLoopFuture<[BlogPost]> {
-        container.future([])
+        container.requestPooledConnection(to: .psql).flatMap { connection in
+            let query = BlogPost.query(on: connection).sort(\.created, .descending)
+            if !includeDrafts {
+                query.filter(\.published == true)
+            }
+            return query.all()
+        }
     }
     
     func getAllPostsSortedByPublishDate(includeDrafts: Bool, on container: Container, count: Int, offset: Int) -> EventLoopFuture<[BlogPost]> {
@@ -38,7 +44,12 @@ struct FluentPostgresPostRepository: BlogPostRepository {
     }
     
     func findPublishedPostsOrdered(for searchTerm: String, on container: Container) -> EventLoopFuture<[BlogPost]> {
-        container.future([])
+        container.requestPooledConnection(to: .psql).flatMap { connection in
+            BlogPost.query(on: connection).sort(\.created, .descending).filter(\.published == true).group(.or) { or in
+                or.filter(\.title, .ilike, "%\(searchTerm)%")
+                or.filter(\.contents, .ilike, "%\(searchTerm)%")
+            }.all()
+        }
     }
     
     func save(_ post: BlogPost, on container: Container) -> EventLoopFuture<BlogPost> {
