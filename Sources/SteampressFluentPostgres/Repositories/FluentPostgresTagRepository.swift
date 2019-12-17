@@ -10,10 +10,12 @@ struct FluentPostgresTagRepository: BlogTagRepository {
     }
     
     func getAllTagsWithPostCount(on container: Container) -> EventLoopFuture<[(BlogTag, Int)]> {
+        #warning("TODO")
         fatalError()
     }
     
     func getTags(for post: BlogPost, on container: Container) -> EventLoopFuture<[BlogTag]> {
+        #warning("TODO")
         fatalError()
     }
     
@@ -30,14 +32,17 @@ struct FluentPostgresTagRepository: BlogTagRepository {
     }
     
     func deleteTags(for post: BlogPost, on container: Container) -> EventLoopFuture<Void> {
+        #warning("TODO")
         fatalError()
     }
     
     func remove(_ tag: BlogTag, from post: BlogPost, on container: Container) -> EventLoopFuture<Void> {
+        #warning("TODO")
         fatalError()
     }
     
     func add(_ tag: BlogTag, to post: BlogPost, on conainter: Container) -> EventLoopFuture<Void> {
+        #warning("TODO")
         fatalError()
     }
     
