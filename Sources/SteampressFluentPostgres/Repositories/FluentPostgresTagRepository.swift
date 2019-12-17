@@ -32,7 +32,7 @@ struct FluentPostgresTagRepository: BlogTagRepository {
     }
     
     func deleteTags(for post: BlogPost, on container: Container) -> EventLoopFuture<Void> {
-        #warning("TODO")
+        #warning("Delete orphaned tags")
         fatalError()
     }
     
@@ -41,8 +41,8 @@ struct FluentPostgresTagRepository: BlogTagRepository {
         fatalError()
     }
     
-    func add(_ tag: BlogTag, to post: BlogPost, on conainter: Container) -> EventLoopFuture<Void> {
-        conainter.requestPooledConnection(to: .psql).flatMap { connection in
+    func add(_ tag: BlogTag, to post: BlogPost, on container: Container) -> EventLoopFuture<Void> {
+        container.requestPooledConnection(to: .psql).flatMap { connection in
             post.tags.attach(tag, on: connection).transform(to: ())
         }
     }
