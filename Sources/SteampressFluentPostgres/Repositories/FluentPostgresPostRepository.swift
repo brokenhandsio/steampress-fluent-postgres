@@ -18,7 +18,14 @@ struct FluentPostgresPostRepository: BlogPostRepository {
     }
     
     func getAllPostsSortedByPublishDate(for user: BlogUser, includeDrafts: Bool, on container: Container, count: Int, offset: Int) -> EventLoopFuture<[BlogPost]> {
-        container.future([])
+        container.requestPooledConnection(to: .psql).flatMap { connection in
+            let query = try user.posts.query(on: connection).sort(\.created, .descending)
+            if !includeDrafts {
+                query.filter(\.published == true)
+            }
+            let upperLimit = count + offset
+            return query.range(offset..<upperLimit).all()
+        }
     }
     
     func getPostCount(for user: BlogUser, on container: Container) -> EventLoopFuture<Int> {
