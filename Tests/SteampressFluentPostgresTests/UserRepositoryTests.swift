@@ -106,5 +106,27 @@ class UserRepositoryTests: XCTestCase {
         
         XCTAssertTrue(errorOccurred)
     }
+    
+    func testGettingUsersWithPostCounts() throws {
+        let postAuthor = try BlogUser(name: "Alice", username: "alice", password: "password", profilePicture: nil, twitterHandle: nil, biography: nil, tagline: nil).save(on: connection).wait()
+        let otherUser = try BlogUser(name: "Bob", username: "bob", password: "password", profilePicture: nil, twitterHandle: nil, biography: nil, tagline: nil).save(on: connection).wait()
+        let newUser = try BlogUser(name: "Luke", username: "luke", password: "password", profilePicture: nil, twitterHandle: nil, biography: nil, tagline: nil).save(on: connection).wait()
+        
+        _ = try BlogPost(title: "A new post", contents: "Some Contents about vapor", author: postAuthor, creationDate: Date().addingTimeInterval(-360), slugUrl: "a-new-post", published: true).save(on: connection).wait()
+        _ = try BlogPost(title: "A different Vapor post", contents: "Some other contents", author: postAuthor, creationDate: Date().addingTimeInterval(360), slugUrl: "a-different-post", published: true).save(on: connection).wait()
+        _ = try BlogPost(title: "A third post", contents: "Some other contents containing vapor", author: postAuthor, creationDate: Date(), slugUrl: "a-third-post", published: true).save(on: connection).wait()
+        _ = try BlogPost(title: "A draft Vapor post", contents: "Some other contents", author: postAuthor, creationDate: Date().addingTimeInterval(60), slugUrl: "a-draft-post", published: true).save(on: connection).wait()
+        _ = try BlogPost(title: "An unrelated draft post", contents: "Some other contents", author: postAuthor, creationDate: Date().addingTimeInterval(10), slugUrl: "an-unrelated-draft-post", published: false).save(on: connection).wait()
+        _ = try BlogPost(title: "An unrelated post", contents: "Some other contents", author: otherUser, creationDate: Date().addingTimeInterval(30), slugUrl: "an-unrelated-post", published: true).save(on: connection).wait()
+        
+        let usersWithPostCount = try repository.getAllUsersWithPostCount(on: app).wait()
+        XCTAssertEqual(usersWithPostCount.count, 3)
+        XCTAssertEqual(usersWithPostCount.first?.1, 4)
+        XCTAssertEqual(usersWithPostCount.first?.0.username, postAuthor.username)
+        XCTAssertEqual(usersWithPostCount.last?.1, 0)
+        XCTAssertEqual(usersWithPostCount.last?.0.username, newUser.username)
+        XCTAssertEqual(usersWithPostCount[1].0.username, otherUser.username)
+        XCTAssertEqual(usersWithPostCount[1].1, 1)
+    }
 }
 

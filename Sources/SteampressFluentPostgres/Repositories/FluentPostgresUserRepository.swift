@@ -9,7 +9,12 @@ struct FluentPostgresUserRepository: BlogUserRepository {
     }
     
     func getAllUsersWithPostCount(on container: Container) -> EventLoopFuture<[(BlogUser, Int)]> {
-        fatalError()
+        container.requestPooledConnection(to: .psql).flatMap { connection in
+            BlogUser.query(on: connection).join(\BlogPost.author, to: \BlogUser.userID).alsoDecode(BlogPost.self).all().map { userWithPost in
+                
+                return  []
+            }
+        }
     }
     
     func getUser(id: Int, on container: Container) -> EventLoopFuture<BlogUser?> {
