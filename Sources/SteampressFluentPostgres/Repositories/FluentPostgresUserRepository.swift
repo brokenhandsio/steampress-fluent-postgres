@@ -1,5 +1,6 @@
 import FluentPostgreSQL
 import SteamPress
+import Vapor
 
 struct FluentPostgresUserRepository: BlogUserRepository {
     func getAllUsers(on container: Container) -> EventLoopFuture<[BlogUser]> {
@@ -10,9 +11,17 @@ struct FluentPostgresUserRepository: BlogUserRepository {
     
     func getAllUsersWithPostCount(on container: Container) -> EventLoopFuture<[(BlogUser, Int)]> {
         container.requestPooledConnection(to: .psql).flatMap { connection in
-            BlogUser.query(on: connection).join(\BlogPost.author, to: \BlogUser.userID).alsoDecode(BlogPost.self).all().map { userWithPost in
-                
-                return  []
+            let allUsersQuery = BlogUser.query(on: connection).all()
+            let allPostsQuery = BlogPost.query(on: connection).filter(\.published == true).all()
+            return map(allUsersQuery, allPostsQuery) { users, posts in
+                let lut = [Int: [BlogPost]](grouping: posts, by: { $0[keyPath: \.author] })
+                return users.map { user in
+                    guard let userID = user.userID else {
+                        return (user, 0)
+                    }
+                    let userPostCount = lut[userID]?.count ?? 0
+                    return (user, userPostCount)
+                }
             }
         }
     }
