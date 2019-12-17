@@ -1,6 +1,6 @@
 import Vapor
 import FluentPostgreSQL
-import SteamPress
+import SteampressFluentPostgres
 
 struct TestSetup {
     static func getApp() throws -> Application {
@@ -33,6 +33,7 @@ struct TestSetup {
         migrations.add(model: BlogTag.self, database: .psql)
         migrations.add(model: BlogUser.self, database: .psql)
         migrations.add(model: BlogPost.self, database: .psql)
+        migrations.add(model: BlogPostTagPivot.self, database: .psql)
         services.register(migrations)
         
         let config = Config.default()

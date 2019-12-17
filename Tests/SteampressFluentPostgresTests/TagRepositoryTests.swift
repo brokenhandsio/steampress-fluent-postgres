@@ -66,4 +66,17 @@ class TagRepositoryTests: XCTestCase {
         
         XCTAssertTrue(errorOccurred)
     }
+    
+    func testAddingTagToPost() throws {
+        let tag = try BlogTag(name: "SteamPress").save(on: connection).wait()
+        let user = try BlogUser(name: "Alice", username: "alice", password: "password", profilePicture: nil, twitterHandle: nil, biography: nil, tagline: nil).save(on: connection).wait()
+        let post = try BlogPost(title: "A Post", contents: "Some contents", author: user, creationDate: Date(), slugUrl: "a-post", published: true).save(on: connection).wait()
+        
+        try repository.add(tag, to: post, on: app).wait()
+        
+        let tagLinks = try BlogPostTagPivot.query(on: connection).all().wait()
+        XCTAssertEqual(tagLinks.count, 1)
+        XCTAssertEqual(tagLinks.first?.tagID, tag.tagID)
+        XCTAssertEqual(tagLinks.first?.postID, post.blogID)
+    }
 }

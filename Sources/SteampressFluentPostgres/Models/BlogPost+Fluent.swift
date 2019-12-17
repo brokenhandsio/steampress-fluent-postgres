@@ -23,3 +23,9 @@ extension BlogPost: Migration {
         }
     }
 }
+
+extension BlogPost {
+    var tags: Siblings<BlogPost, BlogTag, BlogPostTagPivot> {
+        return siblings()
+    }
+}

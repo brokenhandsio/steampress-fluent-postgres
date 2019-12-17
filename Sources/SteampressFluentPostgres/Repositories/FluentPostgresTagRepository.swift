@@ -42,8 +42,9 @@ struct FluentPostgresTagRepository: BlogTagRepository {
     }
     
     func add(_ tag: BlogTag, to post: BlogPost, on conainter: Container) -> EventLoopFuture<Void> {
-        #warning("TODO")
-        fatalError()
+        conainter.requestPooledConnection(to: .psql).flatMap { connection in
+            post.tags.attach(tag, on: connection).transform(to: ())
+        }
     }
     
 }
