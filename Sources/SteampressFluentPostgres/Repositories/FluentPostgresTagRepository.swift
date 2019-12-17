@@ -37,8 +37,9 @@ struct FluentPostgresTagRepository: BlogTagRepository {
     }
     
     func remove(_ tag: BlogTag, from post: BlogPost, on container: Container) -> EventLoopFuture<Void> {
-        #warning("TODO")
-        fatalError()
+        container.requestPooledConnection(to: .psql).flatMap { connection in
+            post.tags.detach(tag, on: connection)
+        }
     }
     
     func add(_ tag: BlogTag, to post: BlogPost, on container: Container) -> EventLoopFuture<Void> {
