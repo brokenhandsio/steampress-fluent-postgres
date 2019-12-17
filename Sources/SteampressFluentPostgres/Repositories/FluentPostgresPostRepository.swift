@@ -16,7 +16,9 @@ struct FluentPostgresPostRepository: BlogPostRepository {
     }
     
     func getPostCount(for user: BlogUser, on container: Container) -> EventLoopFuture<Int> {
-        container.future(-99)
+        container.requestPooledConnection(to: .psql).flatMap { connection in
+            try user.posts.query(on: connection).filter(\.published == true).count()
+        }
     }
     
     func getPost(slug: String, on container: Container) -> EventLoopFuture<BlogPost?> {

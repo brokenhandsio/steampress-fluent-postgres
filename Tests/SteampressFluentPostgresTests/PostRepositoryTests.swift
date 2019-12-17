@@ -86,5 +86,16 @@ class PostRepositoryTests: XCTestCase {
         
         XCTAssertTrue(errorOccurred)
     }
+    
+    func testGettingPostCountForAUser() throws {
+        _ = try BlogPost(title: "A new post", contents: "Some Contents", author: postAuthor, creationDate: Date(), slugUrl: "a-new-post", published: true).save(on: connection).wait()
+        _ = try BlogPost(title: "A different post", contents: "Some other contents", author: postAuthor, creationDate: Date(), slugUrl: "a-different-post", published: true).save(on: connection).wait()
+        _ = try BlogPost(title: "A draft post", contents: "Some other contents", author: postAuthor, creationDate: Date(), slugUrl: "a-draft-post", published: false).save(on: connection).wait()
+
+        let count = try repository.getPostCount(for: postAuthor, on: app).wait()
+        
+        // Draft posts shouldn't appear in count
+        XCTAssertEqual(count, 2)
+    }
 }
 

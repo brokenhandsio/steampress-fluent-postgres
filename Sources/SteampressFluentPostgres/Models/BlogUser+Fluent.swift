@@ -23,3 +23,9 @@ extension BlogUser: Migration {
         }
     }
 }
+
+extension BlogUser {
+    var posts: Children<BlogUser, BlogPost> {
+        return children(\.author)
+    }
+}
