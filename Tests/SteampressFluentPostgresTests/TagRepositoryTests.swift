@@ -54,5 +54,16 @@ class TagRepositoryTests: XCTestCase {
         XCTAssertEqual(tags.last?.name, tagName2)
     }
     
-    #warning("Test tag name must be unique")
+    func testErrorOccursWhenSavingATagWithNameThatAlreadyExists() throws {
+        let tagName = "SteamPress"
+        var errorOccurred = false
+        _ = try BlogTag(name: tagName).save(on: connection).wait()
+        do {
+            _ = try BlogTag(name: tagName).save(on: connection).wait()
+        } catch {
+            errorOccurred = true
+        }
+        
+        XCTAssertTrue(errorOccurred)
+    }
 }
