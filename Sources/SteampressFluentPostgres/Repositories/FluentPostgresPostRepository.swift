@@ -54,8 +54,11 @@ struct FluentPostgresPostRepository: BlogPostRepository {
     }
     
     func getSortedPublishedPosts(for tag: BlogTag, on container: Container, count: Int, offset: Int) -> EventLoopFuture<[BlogPost]> {
-        #warning("TODO")
-        return container.future([])
+        container.requestPooledConnection(to: .psql).flatMap { connection in
+            let query = try tag.posts.query(on: connection).filter(\.published == true).sort(\.created, .descending)
+            let upperLimit = count + offset
+            return query.range(offset..<upperLimit).all()
+        }
     }
     
     func findPublishedPostsOrdered(for searchTerm: String, on container: Container) -> EventLoopFuture<[BlogPost]> {

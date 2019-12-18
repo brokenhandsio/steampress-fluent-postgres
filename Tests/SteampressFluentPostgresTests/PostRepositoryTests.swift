@@ -193,5 +193,40 @@ class PostRepositoryTests: XCTestCase {
         XCTAssertEqual(postsWithDrafts.count, 4)
         XCTAssertEqual(postsWithDrafts.last?.slugUrl, post5.slugUrl)
     }
+    
+    func testGettingPaginatedPostsForTag() throws {
+        let tag = try BlogTag(name: "Engineering").save(on: connection).wait()
+        let otherTag = try BlogTag(name: "Boring").save(on: connection).wait()
+        
+        let post1 = try BlogPost(title: "A new post", contents: "Some Contents about vapor", author: postAuthor, creationDate: Date().addingTimeInterval(-360), slugUrl: "a-new-post", published: true).save(on: connection).wait()
+        let post2 = try BlogPost(title: "A different Vapor post", contents: "Some other contents", author: postAuthor, creationDate: Date().addingTimeInterval(360), slugUrl: "a-different-post", published: true).save(on: connection).wait()
+        let post3 = try BlogPost(title: "A third post", contents: "Some other contents containing vapor", author: postAuthor, creationDate: Date(), slugUrl: "a-third-post", published: true).save(on: connection).wait()
+        let post4 = try BlogPost(title: "A draft Vapor post", contents: "Some other contents", author: postAuthor, creationDate: Date().addingTimeInterval(60), slugUrl: "a-draft-post", published: true).save(on: connection).wait()
+        let post5 = try BlogPost(title: "An unrelated draft post", contents: "Some other contents", author: postAuthor, creationDate: Date().addingTimeInterval(10), slugUrl: "an-unrelated-draft-post", published: false).save(on: connection).wait()
+        let post6 = try BlogPost(title: "An unrelated post", contents: "Some other contents", author: postAuthor, creationDate: Date(), slugUrl: "an-unrelated-post", published: true).save(on: connection).wait()
+        _ = try post1.tags.attach(tag, on: connection).wait()
+        _ = try post2.tags.attach(tag, on: connection).wait()
+        _ = try post3.tags.attach(tag, on: connection).wait()
+        _ = try post4.tags.attach(tag, on: connection).wait()
+        _ = try post5.tags.attach(tag, on: connection).wait()
+        _ = try post6.tags.attach(otherTag, on: connection).wait()
+        
+        let firstPosts = try repository.getSortedPublishedPosts(for: tag, on: app, count: 2, offset: 0).wait()
+        XCTAssertEqual(firstPosts.count, 2)
+        XCTAssertEqual(firstPosts.first?.slugUrl, post2.slugUrl)
+        XCTAssertEqual(firstPosts.last?.slugUrl, post4.slugUrl)
+        
+        let secondPosts = try repository.getSortedPublishedPosts(for: tag, on: app, count: 2, offset: 2).wait()
+        XCTAssertEqual(secondPosts.count, 2)
+        XCTAssertEqual(secondPosts.first?.slugUrl, post3.slugUrl)
+        XCTAssertEqual(secondPosts.last?.slugUrl, post1.slugUrl)
+        
+        let thirdPosts = try repository.getSortedPublishedPosts(for: tag, on: app, count: 2, offset: 4).wait()
+        XCTAssertEqual(thirdPosts.count, 0)
+        
+        let otherUserPosts = try repository.getSortedPublishedPosts(for: otherTag, on: app, count: 10, offset: 0).wait()
+        XCTAssertEqual(otherUserPosts.count, 1)
+        XCTAssertEqual(otherUserPosts.first?.slugUrl, post6.slugUrl)
+    }
 }
 
