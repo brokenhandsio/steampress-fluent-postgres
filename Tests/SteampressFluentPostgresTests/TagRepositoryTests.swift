@@ -124,4 +124,25 @@ class TagRepositoryTests: XCTestCase {
         let pivotCount = try BlogPostTagPivot.query(on: connection).count().wait()
         XCTAssertEqual(pivotCount, 0)
     }
+    
+    func testGettingAllTagsWithPostCount() throws {
+        let tag1 = try BlogTag(name: "SteamPress").save(on: connection).wait()
+        let tag2 = try BlogTag(name: "Engineering").save(on: connection).wait()
+        let user = try BlogUser(name: "Alice", username: "alice", password: "password", profilePicture: nil, twitterHandle: nil, biography: nil, tagline: nil).save(on: connection).wait()
+        let post1 = try BlogPost(title: "A Post", contents: "Some contents", author: user, creationDate: Date(), slugUrl: "a-post", published: true).save(on: connection).wait()
+        let post2 = try BlogPost(title: "A Second Post", contents: "Some contents", author: user, creationDate: Date(), slugUrl: "a-second-post", published: true).save(on: connection).wait()
+        let post3 = try BlogPost(title: "A Third Post", contents: "Some contents", author: user, creationDate: Date(), slugUrl: "a-third-post", published: true).save(on: connection).wait()
+        
+        _ = try post1.tags.attach(tag1, on: connection).wait()
+        _ = try post2.tags.attach(tag2, on: connection).wait()
+        _ = try post3.tags.attach(tag1, on: connection).wait()
+        
+        let tagsWithPostCount = try repository.getAllTagsWithPostCount(on: app).wait()
+        
+        XCTAssertEqual(tagsWithPostCount.count, 2)
+        XCTAssertEqual(tagsWithPostCount.first?.0.name, tag1.name)
+        XCTAssertEqual(tagsWithPostCount.first?.1, 2)
+        XCTAssertEqual(tagsWithPostCount.last?.0.name, tag2.name)
+        XCTAssertEqual(tagsWithPostCount.last?.1, 1)
+    }
 }

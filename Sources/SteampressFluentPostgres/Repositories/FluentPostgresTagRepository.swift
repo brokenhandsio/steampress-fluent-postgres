@@ -11,8 +11,16 @@ struct FluentPostgresTagRepository: BlogTagRepository {
     }
     
     func getAllTagsWithPostCount(on container: Container) -> EventLoopFuture<[(BlogTag, Int)]> {
-        #warning("TODO")
-        fatalError()
+        container.requestPooledConnection(to: .psql).flatMap { connection in
+            let allTagsQuery = BlogTag.query(on: connection).all()
+            let allPivotsQuery = BlogPostTagPivot.query(on: connection).all()
+            return map(allTagsQuery, allPivotsQuery) { tags, pivots in
+                return try tags.map { tag in
+                    let postCount = try pivots.filter { try $0.tagID == tag.requireID() }.count
+                    return (tag, postCount)
+                }
+            }
+        }
     }
     
     func getTags(for post: BlogPost, on container: Container) -> EventLoopFuture<[BlogTag]> {

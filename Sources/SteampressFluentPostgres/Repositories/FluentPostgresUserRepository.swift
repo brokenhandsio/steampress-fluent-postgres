@@ -14,12 +14,12 @@ struct FluentPostgresUserRepository: BlogUserRepository {
             let allUsersQuery = BlogUser.query(on: connection).all()
             let allPostsQuery = BlogPost.query(on: connection).filter(\.published == true).all()
             return map(allUsersQuery, allPostsQuery) { users, posts in
-                let lut = [Int: [BlogPost]](grouping: posts, by: { $0[keyPath: \.author] })
+                let postsByUserID = [Int: [BlogPost]](grouping: posts, by: { $0[keyPath: \.author] })
                 return users.map { user in
                     guard let userID = user.userID else {
                         return (user, 0)
                     }
-                    let userPostCount = lut[userID]?.count ?? 0
+                    let userPostCount = postsByUserID[userID]?.count ?? 0
                     return (user, userPostCount)
                 }
             }
