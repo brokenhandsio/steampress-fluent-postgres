@@ -1,7 +1,11 @@
 import FluentPostgreSQL
 import SteamPress
 
-struct FluentPostgresPostRepository: BlogPostRepository {
+struct FluentPostgresPostRepository: BlogPostRepository, ServiceType {
+    
+    static func makeService(for container: Container) throws -> FluentPostgresPostRepository {
+        return .init()
+    }
     
     func getAllPostsSortedByPublishDate(includeDrafts: Bool, on container: Container) -> EventLoopFuture<[BlogPost]> {
         container.requestPooledConnection(to: .psql).flatMap { connection in

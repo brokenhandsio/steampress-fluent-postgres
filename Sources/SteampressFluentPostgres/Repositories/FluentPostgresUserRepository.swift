@@ -2,7 +2,12 @@ import FluentPostgreSQL
 import SteamPress
 import Vapor
 
-struct FluentPostgresUserRepository: BlogUserRepository {
+struct FluentPostgresUserRepository: BlogUserRepository, ServiceType {
+    
+    static func makeService(for container: Container) throws -> FluentPostgresUserRepository {
+        return .init()
+    }
+    
     func getAllUsers(on container: Container) -> EventLoopFuture<[BlogUser]> {
         container.requestPooledConnection(to: .psql).flatMap { connection in
             BlogUser.query(on: connection).all()
