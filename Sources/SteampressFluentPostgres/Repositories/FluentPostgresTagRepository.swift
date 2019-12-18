@@ -1,5 +1,6 @@
 import FluentPostgreSQL
 import SteamPress
+import Fluent
 
 struct FluentPostgresTagRepository: BlogTagRepository {
     
@@ -15,8 +16,9 @@ struct FluentPostgresTagRepository: BlogTagRepository {
     }
     
     func getTags(for post: BlogPost, on container: Container) -> EventLoopFuture<[BlogTag]> {
-        #warning("TODO")
-        fatalError()
+        container.requestPooledConnection(to: .psql).flatMap { connection in
+            try post.tags.query(on: connection).all()
+        }
     }
     
     func getTag(_ name: String, on container: Container) -> EventLoopFuture<BlogTag?> {
@@ -32,8 +34,27 @@ struct FluentPostgresTagRepository: BlogTagRepository {
     }
     
     func deleteTags(for post: BlogPost, on container: Container) -> EventLoopFuture<Void> {
-        #warning("Delete orphaned tags")
-        fatalError()
+        container.requestPooledConnection(to: .psql).flatMap { connection in
+            try post.tags.query(on: connection).all().flatMap { tags in
+                let tagIDs = tags.compactMap { $0.tagID }
+                return try BlogPostTagPivot.query(on: connection).filter(\.postID == post.requireID()).filter(\.tagID ~~ tagIDs).delete().flatMap { _ in
+                    var tagCleanups = [EventLoopFuture<Void>]()
+                    for tag in tags {
+                        let tagCleanup = try tag.posts.query(on: connection).all().flatMap(to: Void.self) { posts in
+                            let cleanupFuture: EventLoopFuture<Void>
+                            if posts.count == 0 {
+                                cleanupFuture = tag.delete(on: connection)
+                            } else {
+                                cleanupFuture = container.future()
+                            }
+                            return cleanupFuture
+                        }
+                        tagCleanups.append(tagCleanup)
+                    }
+                    return tagCleanups.flatten(on: container)
+                }
+            }
+        }
     }
     
     func remove(_ tag: BlogTag, from post: BlogPost, on container: Container) -> EventLoopFuture<Void> {

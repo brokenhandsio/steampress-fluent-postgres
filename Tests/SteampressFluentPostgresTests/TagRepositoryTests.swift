@@ -91,4 +91,37 @@ class TagRepositoryTests: XCTestCase {
         let tagLinks = try BlogPostTagPivot.query(on: connection).all().wait()
         XCTAssertEqual(tagLinks.count, 0)
     }
+    
+    func testGettingTagsForPost() throws {
+        let tag1 = try BlogTag(name: "SteamPress").save(on: connection).wait()
+        let tag2 = try BlogTag(name: "Engineering").save(on: connection).wait()
+        let user = try BlogUser(name: "Alice", username: "alice", password: "password", profilePicture: nil, twitterHandle: nil, biography: nil, tagline: nil).save(on: connection).wait()
+        let post = try BlogPost(title: "A Post", contents: "Some contents", author: user, creationDate: Date(), slugUrl: "a-post", published: true).save(on: connection).wait()
+        
+        _ = try post.tags.attach(tag1, on: connection).wait()
+        _ = try post.tags.attach(tag2, on: connection).wait()
+        
+        let postTags =  try repository.getTags(for: post, on: app).wait()
+        XCTAssertEqual(postTags.count, 2)
+        XCTAssertEqual(postTags.first?.name, tag1.name)
+        XCTAssertEqual(postTags.last?.name, tag2.name)
+    }
+    
+    func testDeletingTagsForPost() throws {
+        let tag1 = try BlogTag(name: "SteamPress").save(on: connection).wait()
+        let tag2 = try BlogTag(name: "Engineering").save(on: connection).wait()
+        let user = try BlogUser(name: "Alice", username: "alice", password: "password", profilePicture: nil, twitterHandle: nil, biography: nil, tagline: nil).save(on: connection).wait()
+        let post = try BlogPost(title: "A Post", contents: "Some contents", author: user, creationDate: Date(), slugUrl: "a-post", published: true).save(on: connection).wait()
+        
+        _ = try post.tags.attach(tag1, on: connection).wait()
+        _ = try post.tags.attach(tag2, on: connection).wait()
+        
+        try repository.deleteTags(for: post, on: app).wait()
+        
+        let tagCount = try BlogTag.query(on: connection).count().wait()
+        XCTAssertEqual(tagCount, 0)
+        
+        let pivotCount = try BlogPostTagPivot.query(on: connection).count().wait()
+        XCTAssertEqual(pivotCount, 0)
+    }
 }

@@ -16,3 +16,9 @@ extension BlogTag: Migration {
         }
     }
 }
+
+extension BlogTag {
+    var posts: Siblings<BlogTag, BlogPost, BlogPostTagPivot> {
+        return siblings()
+    }
+}
