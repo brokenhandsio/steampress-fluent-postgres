@@ -51,6 +51,10 @@ class ProviderTests: XCTestCase {
         
         let postRepository = try app.make(BlogPostRepository.self)
         XCTAssertTrue(type(of: postRepository) == FluentPostgresPostRepository.self)
+        let tagRepository = try app.make(BlogTagRepository.self)
+        XCTAssertTrue(type(of: tagRepository) == FluentPostgresTagRepository.self)
+        let userRepository = try app.make(BlogUserRepository.self)
+        XCTAssertTrue(type(of: userRepository) == FluentPostgresUserRepository.self)
         
         var revertEnv = Environment.testing
         revertEnv.arguments = ["vapor", "revert", "--all", "-y"]
