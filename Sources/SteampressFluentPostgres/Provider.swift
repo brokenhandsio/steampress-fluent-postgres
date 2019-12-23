@@ -1,7 +1,7 @@
 import Vapor
 import SteamPress
 
-public struct Provider: Vapor.Provider {
+public struct SteamPressFluentPostgresProvider: Vapor.Provider {
 
     // MARK: - Properties
     private let blogPath: String?
@@ -38,15 +38,14 @@ public struct Provider: Vapor.Provider {
 
     public func register(_ services: inout Services) throws {
         let provider = SteamPress.Provider(blogPath: blogPath, feedInformation: feedInformation, postsPerPage: postsPerPage, enableAuthorPages: enableAuthorPages, enableTagPages: enableTagPages)
+        services.register(FluentPostgresTagRepository(), as: BlogTagRepository.self)
+        services.register(FluentPostgresUserRepository(), as: BlogUserRepository.self)
+        services.register(FluentPostgresPostRepository(), as: BlogPostRepository.self)
         try services.register(provider)
-        services.register(FluentPostgresTagRepository.self)
-        services.register(FluentPostgresPostRepository.self)
-        services.register(FluentPostgresUserRepository.self)
     }
-
-    public func willBoot(_ container: Container) throws -> EventLoopFuture<Void> {}
-
-    public func didBoot(_ container: Container) throws -> EventLoopFuture<Void> {}
-
+    
+    public func didBoot(_ container: Container) throws -> EventLoopFuture<Void> {
+        return container.future()
+    }
 }
 
