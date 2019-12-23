@@ -3,7 +3,7 @@ on:
 - push
 jobs:
   xenial:
-    container: 
+    container:
       image: vapor/swift:5.1-xenial
     services:
       psql:
@@ -22,7 +22,7 @@ jobs:
         DB_HOSTNAME: psql
         DB_PORT: 5432
   bionic:
-    container: 
+    container:
       image: vapor/swift:5.1-bionic
     services:
       psql:
@@ -44,10 +44,9 @@ jobs:
     - name: Setup container for codecov upload
       run: apt-get update && apt-get install curl
     - name: Process coverage file
-      run: llvm-cov show .build/x86_64-unknown-linux/debug/SteampressFluentPostgres.xctest -instr-profile=.build/x86_64-unknown-linux/debug/codecov/default.profdata > coverage.txt
+      run: llvm-cov show .build/x86_64-unknown-linux/debug/SteampressFluentPostgresPackageTests.xctest -instr-profile=.build/x86_64-unknown-linux/debug/codecov/default.profdata > coverage.txt
     - name: Upload code coverage
       uses: codecov/codecov-action@v1
       with:
         token: ${{ secrets.CODECOV_UPLOAD_KEY }}
         file: coverage.txt
-
