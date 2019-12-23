@@ -2,11 +2,7 @@ import FluentPostgreSQL
 import SteamPress
 import Fluent
 
-struct FluentPostgresTagRepository: BlogTagRepository, ServiceType {
-    
-    static func makeService(for container: Container) throws -> FluentPostgresTagRepository {
-        return .init()
-    }
+struct FluentPostgresTagRepository: BlogTagRepository, Service {
     
     func getAllTags(on container: Container) -> EventLoopFuture<[BlogTag]> {
         container.requestPooledConnection(to: .psql).flatMap { connection in
