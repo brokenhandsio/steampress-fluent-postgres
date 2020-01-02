@@ -3,7 +3,7 @@ import FluentPostgreSQL
 import SteampressFluentPostgres
 
 struct TestSetup {
-    static func getApp() throws -> Application {
+    static func getApp(enableAdminUser: Bool = false) throws -> Application {
         var services = Services.default()
         try services.register(FluentPostgreSQLProvider())
         
@@ -34,6 +34,9 @@ struct TestSetup {
         migrations.add(model: BlogUser.self, database: .psql)
         migrations.add(model: BlogPost.self, database: .psql)
         migrations.add(model: BlogPostTagPivot.self, database: .psql)
+        if enableAdminUser {
+            migrations.add(migration: BlogAdminUser.self, database: .psql)
+        }
         services.register(migrations)
         
         let config = Config.default()

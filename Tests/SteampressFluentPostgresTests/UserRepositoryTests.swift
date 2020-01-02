@@ -128,5 +128,13 @@ class UserRepositoryTests: XCTestCase {
         XCTAssertEqual(usersWithPostCount[1].0.username, otherUser.username)
         XCTAssertEqual(usersWithPostCount[1].1, 1)
     }
+    
+    func testAdminUserMigrationsCreatesAdminUser() throws {
+        app = try TestSetup.getApp(enableAdminUser: true)
+        connection = try app.requestPooledConnection(to: .psql).wait()
+        let user = try XCTUnwrap(BlogUser.query(on: connection).first().wait())
+        XCTAssertEqual(user.username, "admin")
+        XCTAssertEqual(user.name, "Admin")
+    }
 }
 
