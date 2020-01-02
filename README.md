@@ -49,6 +49,8 @@ migrations.add(model: BlogTag.self, database: .psql)
 migrations.add(model: BlogUser.self, database: .psql)
 migrations.add(model: BlogPost.self, database: .psql)
 migrations.add(model: BlogPostTagPivot.self, database: .psql)
+// This will create an admin user so you can log in! The password will be printed out when created.
+migrations.add(migration: BlogAdminUser.self, database: .psql)
 services.register(migrations)
 ```
 
