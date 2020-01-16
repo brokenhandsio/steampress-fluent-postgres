@@ -8,7 +8,7 @@ class PostRepositoryTests: XCTestCase {
     
     // MARK: - Properties
     var app: Application!
-    var connection: DatabaseConnectable!
+    var connection: PostgreSQLConnection!
     var repository = FluentPostgresPostRepository()
     var postAuthor: BlogUser!
     
@@ -18,6 +18,10 @@ class PostRepositoryTests: XCTestCase {
         app = try! TestSetup.getApp()
         connection = try! app.requestPooledConnection(to: .psql).wait()
         postAuthor = try! BlogUser(name: "Alice", username: "alice", password: "password", profilePicture: nil, twitterHandle: nil, biography: nil, tagline: nil).save(on: connection).wait()
+    }
+    
+    override func tearDown() {
+        try! app.releasePooledConnection(connection, to: .psql)
     }
     
     // MARK: - Tests

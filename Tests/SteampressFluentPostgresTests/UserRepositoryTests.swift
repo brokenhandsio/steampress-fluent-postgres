@@ -8,7 +8,7 @@ class UserRepositoryTests: XCTestCase {
     
     // MARK: - Properties
     var app: Application!
-    var connection: DatabaseConnectable!
+    var connection: PostgreSQLConnection!
     var repository = FluentPostgresUserRepository()
     
     // MARK: - Overrides
@@ -16,6 +16,10 @@ class UserRepositoryTests: XCTestCase {
     override func setUp() {
         app = try! TestSetup.getApp()
         connection = try! app.requestPooledConnection(to: .psql).wait()
+    }
+    
+    override func tearDown() {
+        try! app.releasePooledConnection(connection, to: .psql)
     }
     
     // MARK: - Tests

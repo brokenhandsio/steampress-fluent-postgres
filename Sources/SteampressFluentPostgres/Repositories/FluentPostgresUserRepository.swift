@@ -5,13 +5,13 @@ import Vapor
 struct FluentPostgresUserRepository: BlogUserRepository, Service {
     
     func getAllUsers(on container: Container) -> EventLoopFuture<[BlogUser]> {
-        container.requestPooledConnection(to: .psql).flatMap { connection in
+        container.withPooledConnection(to: .psql) { connection in
             BlogUser.query(on: connection).all()
         }
     }
     
     func getAllUsersWithPostCount(on container: Container) -> EventLoopFuture<[(BlogUser, Int)]> {
-        container.requestPooledConnection(to: .psql).flatMap { connection in
+        container.withPooledConnection(to: .psql) { connection in
             let allUsersQuery = BlogUser.query(on: connection).all()
             let allPostsQuery = BlogPost.query(on: connection).filter(\.published == true).all()
             return map(allUsersQuery, allPostsQuery) { users, posts in
@@ -28,37 +28,43 @@ struct FluentPostgresUserRepository: BlogUserRepository, Service {
     }
     
     func getUser(id: Int, on container: Container) -> EventLoopFuture<BlogUser?> {
-        container.requestPooledConnection(to: .psql).flatMap { connection in
-            BlogUser.query(on: connection).filter(\.userID == id).first()
+        print("Will get user")
+//        return container.requestPooledConnection(to: .psql).flatMap { connection -> EventLoopFuture<BlogUser?> in
+//            print("Got connection, making query")
+//            return BlogUser.query(on: connection).filter(\.userID == id).first()
+//        }
+        return container.withPooledConnection(to: .psql) { connection in
+            print("Got connection, making query")
+            return BlogUser.query(on: connection).filter(\.userID == id).first()
         }
     }
     
     func getUser(name: String, on container: Container) -> EventLoopFuture<BlogUser?> {
-        container.requestPooledConnection(to: .psql).flatMap { connection in
+        container.withPooledConnection(to: .psql) { connection in
             BlogUser.query(on: connection).filter(\.name == name).first()
         }
     }
     
     func getUser(username: String, on container: Container) -> EventLoopFuture<BlogUser?> {
-        container.requestPooledConnection(to: .psql).flatMap { connection in
+        container.withPooledConnection(to: .psql) { connection in
             BlogUser.query(on: connection).filter(\.username == username).first()
         }
     }
     
     func save(_ user: BlogUser, on container: Container) -> EventLoopFuture<BlogUser> {
-        container.requestPooledConnection(to: .psql).flatMap { connection in
+        container.withPooledConnection(to: .psql) { connection in
             user.save(on: connection)
         }
     }
     
     func delete(_ user: BlogUser, on container: Container) -> EventLoopFuture<Void> {
-        container.requestPooledConnection(to: .psql).flatMap { connection in
+        container.withPooledConnection(to: .psql) { connection in
             user.delete(on: connection)
         }
     }
     
     func getUsersCount(on container: Container) -> EventLoopFuture<Int> {
-        container.requestPooledConnection(to: .psql).flatMap { connection in
+        container.withPooledConnection(to: .psql) { connection in
             BlogUser.query(on: connection).count()
         }
     }

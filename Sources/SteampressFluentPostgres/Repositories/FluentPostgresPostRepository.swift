@@ -4,7 +4,7 @@ import SteamPress
 struct FluentPostgresPostRepository: BlogPostRepository, Service {
     
     func getAllPostsSortedByPublishDate(includeDrafts: Bool, on container: Container) -> EventLoopFuture<[BlogPost]> {
-        container.requestPooledConnection(to: .psql).flatMap { connection in
+        container.withPooledConnection(to: .psql) { connection in
             let query = BlogPost.query(on: connection).sort(\.created, .descending)
             if !includeDrafts {
                 query.filter(\.published == true)
@@ -14,7 +14,7 @@ struct FluentPostgresPostRepository: BlogPostRepository, Service {
     }
     
     func getAllPostsSortedByPublishDate(includeDrafts: Bool, on container: Container, count: Int, offset: Int) -> EventLoopFuture<[BlogPost]> {
-        container.requestPooledConnection(to: .psql).flatMap { connection in
+        container.withPooledConnection(to: .psql) { connection in
             let query = BlogPost.query(on: connection).sort(\.created, .descending)
             if !includeDrafts {
                 query.filter(\.published == true)
@@ -25,7 +25,7 @@ struct FluentPostgresPostRepository: BlogPostRepository, Service {
     }
     
     func getAllPostsSortedByPublishDate(for user: BlogUser, includeDrafts: Bool, on container: Container, count: Int, offset: Int) -> EventLoopFuture<[BlogPost]> {
-        container.requestPooledConnection(to: .psql).flatMap { connection in
+        container.withPooledConnection(to: .psql) { connection in
             let query = try user.posts.query(on: connection).sort(\.created, .descending)
             if !includeDrafts {
                 query.filter(\.published == true)
@@ -36,25 +36,25 @@ struct FluentPostgresPostRepository: BlogPostRepository, Service {
     }
     
     func getPostCount(for user: BlogUser, on container: Container) -> EventLoopFuture<Int> {
-        container.requestPooledConnection(to: .psql).flatMap { connection in
+        container.withPooledConnection(to: .psql) { connection in
             try user.posts.query(on: connection).filter(\.published == true).count()
         }
     }
     
     func getPost(slug: String, on container: Container) -> EventLoopFuture<BlogPost?> {
-        container.requestPooledConnection(to: .psql).flatMap { connection in
+        container.withPooledConnection(to: .psql) { connection in
             BlogPost.query(on: connection).filter(\.slugUrl == slug).first()
         }
     }
     
     func getPost(id: Int, on container: Container) -> EventLoopFuture<BlogPost?> {
-        container.requestPooledConnection(to: .psql).flatMap { connection in
+        container.withPooledConnection(to: .psql) { connection in
             BlogPost.query(on: connection).filter(\.blogID == id).first()
         }
     }
     
     func getSortedPublishedPosts(for tag: BlogTag, on container: Container, count: Int, offset: Int) -> EventLoopFuture<[BlogPost]> {
-        container.requestPooledConnection(to: .psql).flatMap { connection in
+        container.withPooledConnection(to: .psql) { connection in
             let query = try tag.posts.query(on: connection).filter(\.published == true).sort(\.created, .descending)
             let upperLimit = count + offset
             return query.range(offset..<upperLimit).all()
@@ -62,7 +62,7 @@ struct FluentPostgresPostRepository: BlogPostRepository, Service {
     }
     
     func findPublishedPostsOrdered(for searchTerm: String, on container: Container) -> EventLoopFuture<[BlogPost]> {
-        container.requestPooledConnection(to: .psql).flatMap { connection in
+        container.withPooledConnection(to: .psql) { connection in
             BlogPost.query(on: connection).sort(\.created, .descending).filter(\.published == true).group(.or) { or in
                 or.filter(\.title, .ilike, "%\(searchTerm)%")
                 or.filter(\.contents, .ilike, "%\(searchTerm)%")
@@ -71,13 +71,13 @@ struct FluentPostgresPostRepository: BlogPostRepository, Service {
     }
     
     func save(_ post: BlogPost, on container: Container) -> EventLoopFuture<BlogPost> {
-        container.requestPooledConnection(to: .psql).flatMap { connection in
+        container.withPooledConnection(to: .psql) { connection in
             post.save(on: connection)
         }
     }
     
     func delete(_ post: BlogPost, on container: Container) -> EventLoopFuture<Void> {
-        container.requestPooledConnection(to: .psql).flatMap { connection in
+        container.withPooledConnection(to: .psql) { connection in
             post.delete(on: connection)
         }
     }

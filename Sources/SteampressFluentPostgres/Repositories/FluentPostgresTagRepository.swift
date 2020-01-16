@@ -5,13 +5,13 @@ import Fluent
 struct FluentPostgresTagRepository: BlogTagRepository, Service {
     
     func getAllTags(on container: Container) -> EventLoopFuture<[BlogTag]> {
-        container.requestPooledConnection(to: .psql).flatMap { connection in
+        container.withPooledConnection(to: .psql) { connection in
             BlogTag.query(on: connection).all()
         }
     }
     
     func getAllTagsWithPostCount(on container: Container) -> EventLoopFuture<[(BlogTag, Int)]> {
-        container.requestPooledConnection(to: .psql).flatMap { connection in
+        container.withPooledConnection(to: .psql) { connection in
             let allTagsQuery = BlogTag.query(on: connection).all()
             let allPivotsQuery = BlogPostTagPivot.query(on: connection).all()
             return map(allTagsQuery, allPivotsQuery) { tags, pivots in
@@ -24,25 +24,25 @@ struct FluentPostgresTagRepository: BlogTagRepository, Service {
     }
     
     func getTags(for post: BlogPost, on container: Container) -> EventLoopFuture<[BlogTag]> {
-        container.requestPooledConnection(to: .psql).flatMap { connection in
+        container.withPooledConnection(to: .psql) { connection in
             try post.tags.query(on: connection).all()
         }
     }
     
     func getTag(_ name: String, on container: Container) -> EventLoopFuture<BlogTag?> {
-        container.requestPooledConnection(to: .psql).flatMap { connection in
+        container.withPooledConnection(to: .psql) { connection in
             BlogTag.query(on: connection).filter(\.name == name).first()
         }
     }
     
     func save(_ tag: BlogTag, on container: Container) -> EventLoopFuture<BlogTag> {
-        container.requestPooledConnection(to: .psql).flatMap { connection in
+        container.withPooledConnection(to: .psql) { connection in
             tag.save(on: connection)
         }
     }
     
     func deleteTags(for post: BlogPost, on container: Container) -> EventLoopFuture<Void> {
-        container.requestPooledConnection(to: .psql).flatMap { connection in
+        container.withPooledConnection(to: .psql) { connection in
             try post.tags.query(on: connection).all().flatMap { tags in
                 let tagIDs = tags.compactMap { $0.tagID }
                 return try BlogPostTagPivot.query(on: connection).filter(\.postID == post.requireID()).filter(\.tagID ~~ tagIDs).delete().flatMap { _ in
@@ -66,13 +66,13 @@ struct FluentPostgresTagRepository: BlogTagRepository, Service {
     }
     
     func remove(_ tag: BlogTag, from post: BlogPost, on container: Container) -> EventLoopFuture<Void> {
-        container.requestPooledConnection(to: .psql).flatMap { connection in
+        container.withPooledConnection(to: .psql) { connection in
             post.tags.detach(tag, on: connection)
         }
     }
     
     func add(_ tag: BlogTag, to post: BlogPost, on container: Container) -> EventLoopFuture<Void> {
-        container.requestPooledConnection(to: .psql).flatMap { connection in
+        container.withPooledConnection(to: .psql) { connection in
             post.tags.attach(tag, on: connection).transform(to: ())
         }
     }
