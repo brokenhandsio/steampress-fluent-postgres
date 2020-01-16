@@ -28,13 +28,7 @@ struct FluentPostgresUserRepository: BlogUserRepository, Service {
     }
     
     func getUser(id: Int, on container: Container) -> EventLoopFuture<BlogUser?> {
-        print("Will get user")
-//        return container.requestPooledConnection(to: .psql).flatMap { connection -> EventLoopFuture<BlogUser?> in
-//            print("Got connection, making query")
-//            return BlogUser.query(on: connection).filter(\.userID == id).first()
-//        }
         return container.withPooledConnection(to: .psql) { connection in
-            print("Got connection, making query")
             return BlogUser.query(on: connection).filter(\.userID == id).first()
         }
     }
