@@ -61,12 +61,26 @@ struct FluentPostgresPostRepository: BlogPostRepository, Service {
         }
     }
     
-    func findPublishedPostsOrdered(for searchTerm: String, on container: Container) -> EventLoopFuture<[BlogPost]> {
+    func findPublishedPostsOrdered(for searchTerm: String, on container: Container, count: Int, offset: Int) -> EventLoopFuture<[BlogPost]> {
         container.withPooledConnection(to: .psql) { connection in
-            BlogPost.query(on: connection).sort(\.created, .descending).filter(\.published == true).group(.or) { or in
+            let query = BlogPost.query(on: connection).sort(\.created, .descending).filter(\.published == true)
+            
+            let upperLimit = count + offset
+            let paginatedQuery = query.range(offset..<upperLimit)
+                
+            return paginatedQuery.group(.or) { or in
                 or.filter(\.title, .ilike, "%\(searchTerm)%")
                 or.filter(\.contents, .ilike, "%\(searchTerm)%")
             }.all()
+        }
+    }
+    
+    func getPublishedPostCount(for searchTerm: String, on container: Container) -> EventLoopFuture<Int> {
+        container.withPooledConnection(to: .psql) { connection in
+            BlogPost.query(on: connection).filter(\.published == true).group(.or) { or in
+                or.filter(\.title, .ilike, "%\(searchTerm)%")
+                or.filter(\.contents, .ilike, "%\(searchTerm)%")
+            }.count()
         }
     }
     

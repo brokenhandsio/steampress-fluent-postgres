@@ -132,11 +132,13 @@ class PostRepositoryTests: XCTestCase {
         _ = try BlogPost(title: "An unrelated draft post", contents: "Some other contents", author: postAuthor, creationDate: Date(), slugUrl: "an-unrelated-draft-post", published: false).save(on: connection).wait()
         _ = try BlogPost(title: "An unrelated post", contents: "Some other contents", author: postAuthor, creationDate: Date(), slugUrl: "an-unrelated-post", published: true).save(on: connection).wait()
         
-        let posts = try repository.findPublishedPostsOrdered(for: "vapor", on: app).wait()
+        let posts = try repository.findPublishedPostsOrdered(for: "vapor", on: app, count: 10, offset: 0).wait()
+        let count = try repository.getPublishedPostCount(for: "vapor", on: app).wait()
         
         XCTAssertEqual(posts.count, 2)
         XCTAssertEqual(posts.first?.slugUrl, post2.slugUrl)
         XCTAssertEqual(posts.last?.slugUrl, post1.slugUrl)
+        XCTAssertEqual(count, 2)
     }
     
     func testGettingAllPostsForUser() throws {
