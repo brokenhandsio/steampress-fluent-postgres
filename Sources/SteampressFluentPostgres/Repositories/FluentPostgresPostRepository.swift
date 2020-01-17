@@ -24,6 +24,16 @@ struct FluentPostgresPostRepository: BlogPostRepository, Service {
         }
     }
     
+    func getAllPostsCount(includeDrafts: Bool, on container: Container) -> EventLoopFuture<Int> {
+        container.withPooledConnection(to: .psql) { connection in
+            let query = BlogPost.query(on: connection)
+            if !includeDrafts {
+                query.filter(\.published == true)
+            }
+            return query.count()
+        }
+    }
+    
     func getAllPostsSortedByPublishDate(for user: BlogUser, includeDrafts: Bool, on container: Container, count: Int, offset: Int) -> EventLoopFuture<[BlogPost]> {
         container.withPooledConnection(to: .psql) { connection in
             let query = try user.posts.query(on: connection).sort(\.created, .descending)
@@ -58,6 +68,12 @@ struct FluentPostgresPostRepository: BlogPostRepository, Service {
             let query = try tag.posts.query(on: connection).filter(\.published == true).sort(\.created, .descending)
             let upperLimit = count + offset
             return query.range(offset..<upperLimit).all()
+        }
+    }
+    
+    func getPublishedPostCount(for tag: BlogTag, on container: Container) -> EventLoopFuture<Int> {
+        container.withPooledConnection(to: .psql) { connection in
+            return try tag.posts.query(on: connection).filter(\.published == true).count()
         }
     }
     
