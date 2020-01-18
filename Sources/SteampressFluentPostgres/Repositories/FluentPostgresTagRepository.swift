@@ -23,6 +23,26 @@ struct FluentPostgresTagRepository: BlogTagRepository, Service {
         }
     }
     
+    func getTagsForAllPosts(on container: Container) -> EventLoopFuture<[Int : [BlogTag]]> {
+        container.withPooledConnection(to: .psql) { connection in
+            let allTagsQuery = BlogTag.query(on: connection).all()
+            let allPivotsQuery = BlogPostTagPivot.query(on: connection).all()
+            return map(allTagsQuery, allPivotsQuery) { tags, pivots in
+                let pivotsSortedByPost = Dictionary(grouping: pivots) { (pivot) -> Int in
+                    return pivot.postID
+                }
+                
+                let postsWithTags = pivotsSortedByPost.mapValues { value in
+                    return value.map { pivot in
+                        tags.first { $0.tagID == pivot.tagID }
+                    }
+                }.mapValues { $0.compactMap { $0 } }
+                
+                return postsWithTags
+            }
+        }
+    }
+    
     func getTags(for post: BlogPost, on container: Container) -> EventLoopFuture<[BlogTag]> {
         container.withPooledConnection(to: .psql) { connection in
             try post.tags.query(on: connection).all()
