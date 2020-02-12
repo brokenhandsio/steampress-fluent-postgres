@@ -66,20 +66,7 @@ struct FluentPostgresTagRepository: BlogTagRepository, Service {
             try post.tags.query(on: connection).all().flatMap { tags in
                 let tagIDs = tags.compactMap { $0.tagID }
                 return try BlogPostTagPivot.query(on: connection).filter(\.postID == post.requireID()).filter(\.tagID ~~ tagIDs).delete().flatMap { _ in
-                    var tagCleanups = [EventLoopFuture<Void>]()
-                    for tag in tags {
-                        let tagCleanup = try tag.posts.query(on: connection).all().flatMap(to: Void.self) { posts in
-                            let cleanupFuture: EventLoopFuture<Void>
-                            if posts.count == 0 {
-                                cleanupFuture = tag.delete(on: connection)
-                            } else {
-                                cleanupFuture = container.future()
-                            }
-                            return cleanupFuture
-                        }
-                        tagCleanups.append(tagCleanup)
-                    }
-                    return tagCleanups.flatten(on: container)
+                    try self.cleanupTags(on: connection, tags: tags)
                 }
             }
         }
@@ -87,8 +74,27 @@ struct FluentPostgresTagRepository: BlogTagRepository, Service {
     
     func remove(_ tag: BlogTag, from post: BlogPost, on container: Container) -> EventLoopFuture<Void> {
         container.withPooledConnection(to: .psql) { connection in
-            post.tags.detach(tag, on: connection)
+            post.tags.detach(tag, on: connection).and(BlogTag.query(on: connection).all()).flatMap { _, tags in
+                try self.cleanupTags(on: connection, tags: tags)
+            }
         }
+    }
+    
+    func cleanupTags(on connection: PostgreSQLConnection, tags: [BlogTag]) throws -> EventLoopFuture<Void> {
+        var tagCleanups = [EventLoopFuture<Void>]()
+        for tag in tags {
+            let tagCleanup = try tag.posts.query(on: connection).all().flatMap(to: Void.self) { posts in
+                let cleanupFuture: EventLoopFuture<Void>
+                if posts.count == 0 {
+                    cleanupFuture = tag.delete(on: connection)
+                } else {
+                    cleanupFuture = connection.future()
+                }
+                return cleanupFuture
+            }
+            tagCleanups.append(tagCleanup)
+        }
+        return tagCleanups.flatten(on: connection)
     }
     
     func add(_ tag: BlogTag, to post: BlogPost, on container: Container) -> EventLoopFuture<Void> {

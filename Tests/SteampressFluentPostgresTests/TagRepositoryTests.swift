@@ -86,14 +86,20 @@ class TagRepositoryTests: XCTestCase {
     
     func testRemovingTagFromPost() throws {
         let tag = try BlogTag(name: "SteamPress").save(on: connection).wait()
+        let tag2 = try BlogTag(name: "Testing").save(on: connection).wait()
         let user = try BlogUser(name: "Alice", username: "alice", password: "password", profilePicture: nil, twitterHandle: nil, biography: nil, tagline: nil).save(on: connection).wait()
         let post = try BlogPost(title: "A Post", contents: "Some contents", author: user, creationDate: Date(), slugUrl: "a-post", published: true).save(on: connection).wait()
         _ = try post.tags.attach(tag, on: connection).wait()
+        _ = try post.tags.attach(tag2, on: connection).wait()
         
         try repository.remove(tag, from: post, on: app).wait()
         
         let tagLinks = try BlogPostTagPivot.query(on: connection).all().wait()
-        XCTAssertEqual(tagLinks.count, 0)
+        XCTAssertEqual(tagLinks.count, 1)
+        
+        let allTags = try BlogTag.query(on: connection).all().wait()
+        XCTAssertEqual(allTags.count, 1)
+        XCTAssertEqual(allTags.first?.name, tag2.name)
     }
     
     func testGettingTagsForPost() throws {
