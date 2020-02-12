@@ -74,8 +74,8 @@ struct FluentPostgresTagRepository: BlogTagRepository, Service {
     
     func remove(_ tag: BlogTag, from post: BlogPost, on container: Container) -> EventLoopFuture<Void> {
         container.withPooledConnection(to: .psql) { connection in
-            post.tags.detach(tag, on: connection).and(BlogTag.query(on: connection).all()).flatMap { _, tags in
-                try self.cleanupTags(on: connection, tags: tags)
+            post.tags.detach(tag, on: connection).flatMap {
+                try self.cleanupTags(on: connection, tags: [tag])
             }
         }
     }
