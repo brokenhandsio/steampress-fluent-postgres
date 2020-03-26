@@ -135,6 +135,26 @@ class TagRepositoryTests: XCTestCase {
         XCTAssertEqual(pivotCount, 0)
     }
     
+    func testDeletingTagsForPostDoesntDeleteTagIfItsAttachedToAnotherPost() throws {
+        let tag1 = try BlogTag(name: "SteamPress").save(on: connection).wait()
+        let tag2 = try BlogTag(name: "Engineering").save(on: connection).wait()
+        let user = try BlogUser(name: "Alice", username: "alice", password: "password", profilePicture: nil, twitterHandle: nil, biography: nil, tagline: nil).save(on: connection).wait()
+        let post = try BlogPost(title: "A Post", contents: "Some contents", author: user, creationDate: Date(), slugUrl: "a-post", published: true).save(on: connection).wait()
+        let post2 = try BlogPost(title: "Another Post", contents: "Some other contents", author: user, creationDate: Date(), slugUrl: "another-post", published: true).save(on: connection).wait()
+        
+        _ = try post.tags.attach(tag1, on: connection).wait()
+        _ = try post.tags.attach(tag2, on: connection).wait()
+        _ = try post2.tags.attach(tag2, on: connection).wait()
+        
+        try repository.deleteTags(for: post, on: app).wait()
+        
+        let tagCount = try BlogTag.query(on: connection).count().wait()
+        XCTAssertEqual(tagCount, 1)
+        
+        let pivotCount = try BlogPostTagPivot.query(on: connection).count().wait()
+        XCTAssertEqual(pivotCount, 1)
+    }
+    
     func testGettingAllTagsWithPostCount() throws {
         let tag1 = try BlogTag(name: "SteamPress").save(on: connection).wait()
         let tag2 = try BlogTag(name: "Engineering").save(on: connection).wait()

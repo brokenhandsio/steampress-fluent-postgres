@@ -25,7 +25,7 @@ Add the package to your **Package.swift** dependencies:
 ```swift
 dependencies: [
     ...,
-    .package(url: "https://github.com/brokenhandsio/steampress-fluent-postgres.git", from: "0.1.0"),
+    .package(name: "SteampressFluentPostgres", url: "https://github.com/brokenhandsio/steampress-fluent-postgres.git", from: "1.0.0"),
 ]
 ```
 
